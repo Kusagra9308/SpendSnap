@@ -9,7 +9,7 @@
 
 ---
 
-## 📌 Executive Summary
+## Executive Summary
 
 **SpendSnap** (`@SpendSnap_kushagra_bot`) is an intelligent, agentic Telegram bot designed for automated personal expense tracking and financial analysis. Powered by **LangGraph** stateful workflows, **LangChain**, and **Groq Cloud AI (Llama 3.3 70B Versatile)**, the bot processes natural language transaction descriptions and receipt/transaction screenshots to extract financial metadata, categorize expenses, and generate summary insights.
 
@@ -51,16 +51,16 @@
 
 ---
 
-## ✨ Core Features & Technical Highlights
+##  Core Features & Technical Highlights
 
-### 🤖 1. Agentic LangGraph StateGraph Workflow
+### Agentic LangGraph StateGraph Workflow
 * Built using **LangGraph** (`StateGraph`, `START`, `END`) to maintain stateful conversational execution streams.
 * Uses **LangChain Core** (`HumanMessage`, `AIMessage`) and `TypedDict` schema annotation with list addition reducers.
 
-### ⚡ 2. Groq Cloud Llama 3.3 70B LLM Integration
+### Groq Cloud Llama 3.3 70B LLM Integration
 * Powered by `ChatGroq(model="llama-3.3-70b-versatile")` for high-throughput, low-latency financial entity extraction and reasoning.
 
-### 📱 3. Telegram Bot Application (`python-telegram-bot`)
+### Telegram Bot Application (`python-telegram-bot`)
 * Asynchronous event polling (`poll_interval=3`) supporting text and image attachments (`filters.TEXT | filters.PHOTO`).
 * Slash commands:
   * `/start`: Welcomes user and displays usage instructions.
@@ -68,7 +68,7 @@
 
 ---
 
-## 🚀 Quick Start Guide
+## Quick Start Guide
 
 ### Prerequisites
 * **Python**: `3.10+`
@@ -112,7 +112,7 @@ Polling Starting ...
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```text
 SpendSnap/
@@ -127,6 +127,6 @@ SpendSnap/
 
 ---
 
-## 📜 License
+## License
 
 Distributed under the MIT License.
