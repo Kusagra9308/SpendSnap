@@ -1,19 +1,22 @@
-# SpendSnap — AI-Powered Telegram Expense Tracker Bot
----
+# SpendSnap
 
-## Executive Summary
-
-**SpendSnap** (`@SpendSnap_kushagra_bot`) is an intelligent, agentic Telegram bot designed for automated personal expense tracking and financial analysis. Powered by **LangGraph** stateful workflows, **LangChain**, and **Groq Cloud AI (Llama 3.3 70B Versatile)**, the bot processes natural language transaction descriptions and receipt/transaction screenshots to extract financial metadata, categorize expenses, and generate summary insights.
+## An AI-powered Telegram bot that automatically extracts, categorizes, and tracks your personal expenses from text messages and receipt screenshots.
 
 ---
 
-## 🏛️ System Architecture & Workflow
+## Project Description
+
+Managing personal finances and manually logging daily transactions is tedious, error-prone, and often neglected. **SpendSnap** solves this problem by providing an intelligent, frictionless expense tracking assistant right inside Telegram. Built with an agentic **LangGraph** workflow, **LangChain**, and **Groq Cloud AI (Llama 3.3 70B Versatile)**, SpendSnap allows users to send simple natural language text (e.g., *"Spent $45 on groceries today"*) or upload receipt/transaction screenshots. The bot automatically extracts transaction amounts, categorizes spending (e.g., Food, Travel, Utilities), and formats the financial metadata for effortless expense tracking.
+
+---
+
+## Visual Aid / Demo
 
 ```text
   +-------------------------------------------------------------------------+
   |                        TELEGRAM USER INTERFACE                          |
   |  - User sends text ("Spent $45 on groceries") or receipt screenshot       |
-  |  - Bot Username: @SpendSnap_kushagra_bot                                |
+  |  - Telegram Bot Handle: @SpendSnap_kushagra_bot                         |
   +-------------------------------------------------------------------------+
                                        |
                                        | Telegram Bot API (python-telegram-bot)
@@ -21,104 +24,134 @@
   +-------------------------------------------------------------------------+
   |                     TELEGRAM BOT ENGINE (bot/my_bot.py)                 |
   |  - Command Handlers (/start, /summary)                                  |
-  |  - Message Handlers (filters.TEXT | filters.PHOTO)                      |
-  |  - Formats incoming text into HumanMessage                              |
+  |  - Message & Photo Handlers (filters.TEXT | filters.PHOTO)              |
+  |  - Formats incoming inputs for LangGraph state machine                  |
   +-------------------------------------------------------------------------+
                                        |
                                        | Invokes StateGraph Workflow
                                        v
   +-------------------------------------------------------------------------+
   |                 LANGGRAPH AI AGENT (backend/graph/workflow.py)           |
-  |  - Compiled StateGraph Graph Execution (START -> welcome -> END)       |
-  |  - State Schema: TypedDict graph_Schema with Annotated[List, add]       |
-  |  - LLM Engine: Groq ChatGroq (model="llama-3.3-70b-versatile")           |
-  +-------------------------------------------------------------------------+
-                                       |
-                                       | Formatted AI Response / Extraction
-                                       v
-  +-------------------------------------------------------------------------+
-  |                    TELEGRAM RESPONSE & ACKNOWLEDGMENT                   |
+  |  - State Graph Execution (START -> choose -> welcome / welcome1 -> END) |
+  |  - Structured Output Parsing via Pydantic ExpenseSchema                 |
+  |  - LLM Engine: Groq ChatGroq (Llama 3.3 70B Versatile)                  |
+  |  - OCR Engine: Tesseract OCR (Pillow / pytesseract)                     |
   +-------------------------------------------------------------------------+
 ```
 
----
-
-##  Core Features & Technical Highlights
-
-### Agentic LangGraph StateGraph Workflow
-* Built using **LangGraph** (`StateGraph`, `START`, `END`) to maintain stateful conversational execution streams.
-* Uses **LangChain Core** (`HumanMessage`, `AIMessage`) and `TypedDict` schema annotation with list addition reducers.
-
-### Groq Cloud Llama 3.3 70B LLM Integration
-* Powered by `ChatGroq(model="llama-3.3-70b-versatile")` for high-throughput, low-latency financial entity extraction and reasoning.
-
-### Telegram Bot Application (`python-telegram-bot`)
-* Asynchronous event polling (`poll_interval=3`) supporting text and image attachments (`filters.TEXT | filters.PHOTO`).
-* Slash commands:
-  * `/start`: Welcomes user and displays usage instructions.
-  * `/summary`: Trigger for expense aggregation and financial summary reports.
+<!-- DEMO PLACEHOLDER: Add your animated GIF or video walkthrough below -->
+> 🎬 **Demo Video / Animated GIF Placeholder**
+> 
+> *(Insert your demo GIF or video link here: `![SpendSnap Demo](assets/spendsnap-demo.gif)`)*
 
 ---
 
-## Quick Start Guide
+## Prerequisites & Requirements
 
-### Prerequisites
-* **Python**: `3.10+`
-* **Groq API Key**: Obtain from [Groq Cloud Console](https://console.groq.com/)
-* **Telegram Bot Token**: Created via BotFather
+Before running SpendSnap, ensure your system meets the following requirements:
 
-### 1. Environment Setup
+* **Python Version:** Python `3.10` or higher
+* **Tesseract OCR Engine:** Required for image receipt parsing
+  * **Windows:** Download and install Tesseract OCR (e.g., to `C:\Program Files\Tesseract-OCR\tesseract.exe`)
+  * **Linux (Ubuntu/Debian):** `sudo apt-get install tesseract-ocr libtesseract-dev`
+  * **macOS:** `brew install tesseract`
+* **API Credentials:**
+  * **Groq Cloud API Key:** Obtain from [Groq Console](https://console.groq.com/)
+  * **Telegram Bot Token:** Generated via Telegram [@BotFather](https://t.me/botfather)
+
+---
+
+## Installation
+
+Follow these sequential, copy-paste-ready commands to clone the repository and set up the project environment:
 
 ```bash
-# Clone the repository
+# 1. Clone the repository
 git clone https://github.com/Kusagra9308/SpendSnap.git
 cd SpendSnap
 
-# Create a virtual environment & activate it
+# 2. Create a virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Install dependencies
-pip install python-telegram-bot langchain-groq langgraph langchain-core python-dotenv
+# 3. Activate the virtual environment
+# On Linux/macOS:
+source venv/bin/activate
+# On Windows (PowerShell):
+.\venv\Scripts\Activate.ps1
+
+# 4. Install dependencies
+pip install python-telegram-bot langchain-groq langgraph langchain-core pydantic Pillow pytesseract python-dotenv
 ```
 
-### 2. Configure Environment Variables
+### Configuration
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the project root directory:
 
 ```env
 GROQ_API_KEY=your_groq_api_key_here
-TELEGRAM_BOT_TOKEN=8988159007:AAEDwRj9tnStkbEOvyf8MGZCPSnnFmp29yM
+TELEGRAM_BOT_TOKEN=your_telegram_bot_token_here
+TESSERACT_CMD=C:\Program Files\Tesseract-OCR\tesseract.exe
 ```
 
-### 3. Run the Bot
+---
+
+## Usage Instructions
+
+### 1. Launching the Telegram Bot
+
+Execute the bot entry point from the project root directory:
 
 ```bash
 python bot/my_bot.py
 ```
-*Output:*
+
+*Expected Terminal Output:*
 ```text
 Bot Starting ...
 Polling Starting ...
 ```
 
+### 2. Interacting with the Bot in Telegram
+
+Search for `@SpendSnap_kushagra_bot` in Telegram and interact using the following commands:
+
+* **`/start`** — Displays the welcome message and instructions.
+* **`/summary`** — Triggers the expense summary report.
+* **Text Transaction Entry:** Send a message like `"Bought wireless headphones for $80"`.
+* **Receipt Screenshot Entry:** Send a photo of a transaction receipt with an optional caption.
+
+### Sample Code Block (LangGraph Agent Invocation)
+
+```python
+from backend.graph.workflow import first_graph
+
+# Example: Invoking the agent with text input
+response = first_graph.invoke({
+    "input_type": "text",
+    "text": "Paid $25 for Uber ride to airport",
+    "image_path": None
+})
+
+# Returns structured Pydantic JSON output:
+# {"amount": 25.0, "category": "Transportation", "transaction_date": null}
+print(response["reply"][-1].content)
+```
+
 ---
 
-## Project Structure
+## Contributing Guidelines
 
-```text
-SpendSnap/
-├── backend/
-│   └── graph/
-│       └── workflow.py          # LangGraph StateGraph & Groq Llama 3.3 70B workflow
-├── bot/
-│   └── my_bot.py                # Telegram Bot handlers (/start, /summary, photo/text)
-├── .gitlab-ci.yml               # CI/CD Pipeline configuration
-└── README.md                    # Project documentation
-```
+Contributions are welcome! If you would like to contribute to SpendSnap:
+
+1. **Fork the Repository:** Create your own feature branch (`git checkout -b feature/AmazingFeature`).
+2. **Commit Your Changes:** Write clear, descriptive commit messages (`git commit -m 'Add AmazingFeature'`).
+3. **Push to Branch:** Push your branch (`git push origin feature/AmazingFeature`).
+4. **Open a Pull Request:** Describe your changes and reference any related issues.
+
+For bug reports or feature requests, please open an issue on the [GitHub Issues](https://github.com/Kusagra9308/SpendSnap/issues) tab.
 
 ---
 
 ## License
 
-Distributed under the MIT License.
+Distributed under the **MIT License**. See `LICENSE` for details.
