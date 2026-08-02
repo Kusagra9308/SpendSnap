@@ -1,12 +1,4 @@
-# 💸 SpendSnap — AI-Powered Telegram Expense Tracker Bot
-
-![Python 3.11](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![LangGraph](https://img.shields.io/badge/LangGraph-Agentic_Workflow-FF4B4B?style=for-the-badge&logo=chainlink&logoColor=white)
-![LangChain](https://img.shields.io/badge/LangChain-Core-0055FF?style=for-the-badge&logo=chainlink&logoColor=white)
-![Groq](https://img.shields.io/badge/Groq-Llama_3.3_70B-f55034?style=for-the-badge&logo=meta&logoColor=white)
-![Telegram](https://img.shields.io/badge/Telegram_Bot-API-26A5E4?style=for-the-badge&logo=telegram&logoColor=white)
-![GitLab CI](https://img.shields.io/badge/GitLab_CI-Pipeline-FC6D26?style=for-the-badge&logo=gitlab&logoColor=white)
-
+# SpendSnap — AI-Powered Telegram Expense Tracker Bot
 ---
 
 ## Executive Summary
