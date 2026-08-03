@@ -1,9 +1,10 @@
-from langchain_groq import ChatGroq
-from dotenv import load_dotenv
-from typing import TypedDict, Annotated, List, Any
 from operator import add
-from langgraph.graph import StateGraph, START, END
+from typing import Annotated, Any, List, TypedDict
+
+from dotenv import load_dotenv
 from langchain_core.messages import AIMessage, HumanMessage
+from langchain_groq import ChatGroq
+from langgraph.graph import END, START, StateGraph
 
 class graph_schema(TypedDict):
     messages_manual: List[Any]
