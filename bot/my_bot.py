@@ -44,8 +44,8 @@ async def summary(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-# What to reply when message send
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# What to reply when message text send
+async def handle_message_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Check  waiting for the user for category
     if "pending_amount" in context.user_data:
@@ -53,34 +53,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         category = update.message.text.strip()
 
         await update.message.reply_text(
-            f"✅ Logged ₹{amount:.2f} under *{category}*!",
-            parse_mode="Markdown"
+            f"✅ Logged ₹{amount:.2f} under *{category}*!", parse_mode="Markdown"
         )
         return
 
     response = ""
 
-    # if photo send
-    if update.message.photo:
-        photo = update.message.photo[-1]
-        file = await context.bot.get_file(photo.file_id)
-
-        with tempfile.NamedTemporaryFile(
-            suffix=".jpg", delete=False
-        ) as temp_file:
-            temp_path = temp_file.name
-
-        try:
-            await file.download_to_drive(temp_path)
-            response = await handle_screenshot(temp_path)
-        finally:
-            try:
-                os.remove(temp_path)
-            except OSError:
-                pass
-
     # if text send
-    elif update.message.text:
+    if update.message.text:
         print("Sending llm request ...")
         timestamp = update.message.date.strftime("%Y-%m-%d %H:%M:%S %Z")
         response = handle_response(
@@ -91,9 +71,10 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("Unsupported message type.")
         return
 
-    #Save pending_amount if category was missing and bot asked for clarification
+    # Save pending_amount if category was missing and bot asked for clarification
     if response and "I recorded an expense of ₹" in response:
         import re
+
         match = re.search(r"₹([\d\.]+)", response)
         if match:
             context.user_data["pending_amount"] = float(match.group(1))
@@ -101,6 +82,72 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if response:
         print("Sending reply ...")
         await update.message.reply_text(response)
+
+# What to reply when image send
+
+async def handle_message_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+    # Check  waiting for the user for category
+    if "pending_amount" in context.user_data:
+        amount = context.user_data.pop("pending_amount")
+        category = update.message.text.strip()
+
+        await update.message.reply_text(
+            f"✅ Logged ₹{amount:.2f} under *{category}*!", parse_mode="Markdown"
+        )
+        return
+
+    response = ""
+
+    # if photo send
+    if update.message.photo:
+
+    # Get the highest-resolution photo
+       photo = update.message.photo[-1]
+
+    # Get the file from Telegram
+       file = await context.bot.get_file(photo.file_id)
+
+    # Check whether the photo has a caption
+       caption = update.message.caption
+
+       with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp_file:
+         temp_path = temp_file.name
+
+    try:
+        # Download the image
+        await file.download_to_drive(temp_path)
+
+        if caption:
+            # Photo + caption
+            print("Caption:", caption)
+            response = await handle_screenshot(temp_path, caption)
+
+        else:
+            # Photo without caption
+            response = await handle_screenshot(temp_path)
+
+    finally:
+        # Delete temporary file
+        try:
+            os.remove(temp_path)
+        except OSError:
+            pass
+
+
+    # Save pending_amount if category was missing and bot asked for clarification
+    if response and "I recorded an expense of ₹" in response:
+        import re
+
+        match = re.search(r"₹([\d\.]+)", response)
+        if match:
+            context.user_data["pending_amount"] = float(match.group(1))
+
+    if response:
+        print("Sending reply ...")
+        await update.message.reply_text(response)
+        
+
 
 # sending request to graph for text
 def handle_response(text: str) -> str:
@@ -117,16 +164,18 @@ def handle_response(text: str) -> str:
 
     return reply["reply"][-1].content
 
+
 # sending request to graph for image
-async def handle_screenshot(image_path: str) -> str:
+async def handle_screenshot(image_path: str , caption : str | None = None ) -> str:
 
     print("Sending request to graph with image")
 
     reply = first_graph.invoke(
         {
             "input_type": "image",
-            "text": None,
+            "text": caption,
             "image_path": image_path,
+            "caption": caption
         }
     )
 
@@ -141,7 +190,8 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("start", start_command))
     app.add_handler(CommandHandler("summary", summary))
 
-    app.add_handler(MessageHandler(filters.TEXT | filters.PHOTO, handle_message))
+    app.add_handler(MessageHandler(filters.TEXT, handle_message_text))
+    app.add_handler(MessageHandler(filters.PHOTO, handle_message_image))
 
     print("Polling Starting ...")
     app.run_polling(poll_interval=3)

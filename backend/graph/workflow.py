@@ -9,6 +9,7 @@ from langchain_groq import ChatGroq
 from langgraph.graph import END, START, StateGraph
 from PIL import Image
 from pydantic import BaseModel, Field
+from datetime import datetime
 
 pytesseract.pytesseract.tesseract_cmd = (
     r"C:\Users\Asus\AppData\Local\Programs\Tesseract-OCR\tesseract.exe"
@@ -17,16 +18,19 @@ pytesseract.pytesseract.tesseract_cmd = (
 
 load_dotenv()
 
-llm = ChatGroq(model="llama-3.3-70b-versatile")
+llm = ChatGroq(model="qwen/qwen3.6-27b")
 
-#graph schema
+
+# graph schema
 class graph_Schema(TypedDict):
     input_type: str
     text: Optional[str]
     image_path: Optional[str]
     reply: Annotated[List[BaseMessage], add]
+    caption: Optional[str]
 
-#schema for llm response
+
+# schema for llm response
 class ExpenseSchema(BaseModel):
     amount: float = Field(description="Transaction amount")
 
@@ -35,11 +39,13 @@ class ExpenseSchema(BaseModel):
     )
 
     transaction_date: str = Field(
-        description="Date of the transaction if available", default=None
+        description="Date of the transaction if available", default_factory= datetime.now
     )
 
-#llm call with schema
+
+# llm call with schema
 structured_llm = llm.with_structured_output(ExpenseSchema)
+
 
 # choose path based on input
 def choose(state: graph_Schema) -> str:
@@ -50,6 +56,7 @@ def choose(state: graph_Schema) -> str:
         return "welcome"
 
     return "error"
+
 
 # call llm when text send only
 def welcome(state: graph_Schema) -> graph_Schema:
@@ -73,6 +80,7 @@ def welcome(state: graph_Schema) -> graph_Schema:
 
     return {"reply": [ai_msg]}
 
+
 # call ocr to extarct text from image and call llm
 def welcome1(state: graph_Schema) -> graph_Schema:
 
@@ -86,10 +94,13 @@ def welcome1(state: graph_Schema) -> graph_Schema:
 
     expense = structured_llm.invoke(
         f"""
-        Extract expense information from the text below.
+        Extract expense information from the text below. and captions is also provided 
 
         Text:
         {text}
+        
+        Caption : 
+        {state["caption"]}
         """
     )
 
@@ -98,11 +109,11 @@ def welcome1(state: graph_Schema) -> graph_Schema:
     if not expense.category:
         reply_text = f"❓ I recorded an expense of ₹{expense.amount:.2f}, but what did you spend it on? (e.g., Food, Travel, Shopping)"
         return {"reply": [AIMessage(content=reply_text)]}
-    
 
     ai_msg = AIMessage(content=expense.model_dump_json())
 
     return {"reply": [ai_msg]}
+
 
 # graph start
 graph = StateGraph(graph_Schema)
